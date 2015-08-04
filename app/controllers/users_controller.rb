@@ -6,9 +6,15 @@ class UsersController < ApplicationController
   def index
     @users = User.all
     @hash = Gmaps4rails.build_markers(@users) do |user, marker|
+      desc = user.description
       marker.lat user.latitude
       marker.lng user.longitude
-      marker.infowindow user.description
+      marker.infowindow desc
+      marker.picture({
+        "url" => user.cache_url(:thumb).to_s,
+        "width" => 32,
+        "height" => 32
+        })
       marker.json({ title: user.title })
     end
   end
@@ -33,7 +39,7 @@ class UsersController < ApplicationController
     @user = User.new(user_params)
 
     respond_to do |format|
-      if @user.save
+      if @user.save!
         format.html { redirect_to @user, notice: 'User was successfully created.' }
         format.json { render :show, status: :created, location: @user }
       else
@@ -75,6 +81,6 @@ class UsersController < ApplicationController
 
     # Never trust parameters from the scary internet, only allow the white list through.
     def user_params
-      params.require(:user).permit(:latitude, :longitude, :address, :description, :title)
+      params.require(:user).permit(:latitude, :longitude, :address, :description, :title, :cache)
     end
 end
